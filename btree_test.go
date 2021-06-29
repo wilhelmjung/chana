@@ -51,7 +51,7 @@ func TestInsert(t *testing.T) {
 		})
 	}
 	// dump root node
-	t.Logf("root: %+v", d.root)
+	t.Logf("root: %+v", d.root) //TODO too much logs.
 }
 
 func SetUpInsertIntoNode() {
@@ -99,7 +99,7 @@ func Test_insertIntoNode(t *testing.T) {
 			}
 		})
 		// dump root node
-		log.Printf("node: %+v", *tt.args.cursor.Node)
+		log.Printf("node: %+v", *tt.args.cursor.Node) //TODO too much logs.
 	}
 }
 func TestInsertAndSearch1(t *testing.T) {

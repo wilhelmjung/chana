@@ -1,7 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"log"
+	"encoding/json"
+    "github.com/davecgh/go-spew/spew"
 )
 
 // config logger...
@@ -10,6 +13,15 @@ func init() {
 	log.SetFlags(log.Ldate | log.Ltime | log.Lmicroseconds | log.Llongfile)
 	log.SetPrefix(prefix)
 	log.Print("module db initialized.")
+}
+
+func prettyFmt(x interface{}) string {
+    b, err := json.MarshalIndent(x, "", "  ")
+    if err != nil {
+        fmt.Println("error:", err)
+    }
+    //fmt.Print(string(b))
+    return string(b)
 }
 
 // Interface : xx
@@ -41,7 +53,7 @@ func NewDB() *DB {
 func (d *DB) Init() {
 	d.NumCell = 1024 // set num cell first!
 	d.root = d.NewNode()
-	//log.Printf("+d.root: %v\n", d.root)
+	log.Printf("+d.root: %v\n", spew.Sdump(d.root))
 }
 
 // Pair : kv
@@ -263,3 +275,4 @@ func (d *DB) insertIntoNode(cursor Cursor, kv *Pair) (bool, error) {
 	}
 	return true, nil
 }
+
