@@ -1,5 +1,5 @@
 // test with: go test btree
-package btree
+package main
 
 import (
 	"flag"
