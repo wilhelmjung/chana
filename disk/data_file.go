@@ -5,7 +5,7 @@ import (
     "os"
     "io"
     "encoding/gob"
-    "reflect"
+    //"reflect"
 )
 
 const (
@@ -24,7 +24,7 @@ type FileHeader struct {
 
 type FileHeader2 struct {
     FileHeader
-    value []byte
+    Value []byte
 }
 
 func check(err error) {
@@ -61,7 +61,7 @@ func main_1(hdr interface{}) {
     err = decoder.Decode(&hdr2)
     check(err)
     fmt.Printf("hdr2: %v\n", hdr2)
-    fmt.Printf("byte: %v\n", hdr2.value)
+    fmt.Printf("byte: %v\n", hdr2.Value)
 
     offset, err := f2.Seek(0, io.SeekCurrent)
     fmt.Printf("offset: %v\n", offset)
