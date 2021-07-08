@@ -15,8 +15,6 @@ func init() {
 	log.Print("module db initialized.")
 }
 
-var OnDisk bool = true
-
 func prettyFmt(x interface{}) string {
     b, err := json.MarshalIndent(x, "", "  ")
     if err != nil {
@@ -35,6 +33,21 @@ type Interface interface {
 	Search(key int) *Pair
 }
 
+// btree index file
+type IndexFile struct {
+    Magic   string // "btree.index"
+    RootIdx int    // idx for root node
+    NodeCnt int
+    Nodes   *Node  // node array
+}
+
+// key value data file
+type DataFile struct {
+    Magic   string // "btree.data"
+    KVCnt   int    // num of kv data
+    KVPairs *Pairs // kv pairs array
+}
+
 // DB : object
 type DB struct {
 	root *Node
@@ -48,7 +61,6 @@ func NewDB() *DB {
 	return d
 }
 
-
 // Init : d should be mutable!
 func (d *DB) Init() {
 	d.NumCell = 1024 // set num cell first!
@@ -58,8 +70,9 @@ func (d *DB) Init() {
 
 // Pair : kv
 type Pair struct {
-	Key int    `json:"key,omitempty"`
-	Val []byte `json:"val,omitempty"`
+	Key int `json:"key,omitempty"`
+    // offset of value in tuple
+	Val int `json:"val,omitempty"`
 }
 
 // Cell :
@@ -95,8 +108,7 @@ func (d *DB) NewNode() *Node {
 	if d.NumCell == 0 {
 		log.Panic("Num of cell can not be 0.")
 	}
-    if OnDisk {
-    } else {
+    {
         // make one more cell for last right pointer
         cells := make([]Cell, d.NumCell+1, d.NumCell+1) // pre-allocated?
         node := &Node{Parent: nil, Cells: cells, Used: 0}

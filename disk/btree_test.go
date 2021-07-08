@@ -252,3 +252,9 @@ func TestDB(t *testing.T) {
 	}
 
 }
+
+// test mmap btree index file.
+func TestDiskBTree(t *testing.T) {
+
+    fmt.Printf("testing...")
+}
