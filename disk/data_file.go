@@ -9,6 +9,7 @@ import (
 )
 
 /*
+  // solution I: index/data split
   index file:
   - size consideration:
   - segmented:
@@ -52,6 +53,10 @@ import (
      2.4 value byte array: 
          need to be decode to KV pair
   3. second row; ......
+
+  // solution II: index/data colocated.
+     - huge B-Tree node page.
+     - size: 16MB
 */
 
 const (
