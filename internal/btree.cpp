@@ -13,8 +13,8 @@ const int DATA_FILE_SIZE = 1024 * 1024 * 1024;
 
 const string DATA_FILE_PATH = "data.bin";
 
-struct data_file {
-    // head
+struct data_file
+{
     uint32_t head; // "data", "idx_"
     uint32_t type; // 0:data; 1:index.
     uint32_t root; // root node offset, subject to change.
@@ -44,8 +44,9 @@ int create_data_file(const char *file_path)
         return -1;
 	}
     // write file header
-    struct data_file head = {
-        .head = 0xDEAD,
+    struct data_file head =
+    {
+        .head = ('d'<<24)+('a'<<16)+('t'<<8)+'a',
         .type = 0,
         .root = 0,
         .size = 0
@@ -80,17 +81,19 @@ int load_data_file(const char *file_path)
 
     // map the whole data file.
     //int len = lseek(fd, 0, SEEK_END);
+ 
     // map only header of data file;
     int len = sizeof(data_file);
-    char *addr = (char *) mmap(NULL, len, PROT_READ, MAP_PRIVATE, fd, 0);
+    char *addr = (char *) mmap(NULL, len, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+
+    struct data_file *df = (struct data_file *) addr;
+    if (df->type == 0)
+        df->type = 1;
+    df->size += 16;
+
+    dump_hex((uint8_t *)addr, len);
+
     close(fd);
-
-    char *data = new char[128];
-    memcpy(data, addr, len);
-    munmap(addr, len);
-
-    dump_hex((uint8_t *)data, len);
-
     return 0;
 }
 
