@@ -1,5 +1,5 @@
 bin:
-	g++ btree.cpp
+	g++ disk.cpp btree.cpp
 
 all: bin
 
