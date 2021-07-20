@@ -3,6 +3,7 @@
 #include <fcntl.h>
 #include <fstream>
 #include <string>
+#include <string.h>
 #include <sys/mman.h>
 #include <unistd.h>
 
@@ -40,6 +41,8 @@ public:
 
     node_manager(){}
     node_manager(string name, int type, int sz, int cap);
+    int unload_file();
+    static node_manager *load_file(string name);
 };
 
 node_manager::node_manager(string name, int type, int node_size, int capacity)
@@ -58,6 +61,73 @@ node_manager::node_manager(string name, int type, int node_size, int capacity)
     }
     fs.write((char *)this, sizeof(*this) + capacity);
     fs.close();
+}
+
+// read-only
+char *map_read(string file_name, int& file_len)
+{
+    int fd = open(file_name.c_str(), O_RDONLY);
+    int len = lseek(fd, 0, SEEK_END);
+    char *buffer = (char *)mmap(NULL, len, PROT_READ, MAP_PRIVATE, fd, 0);
+    close(fd);
+    //  do something
+    char *res = (char *)calloc(1, len);
+    memcpy(res, buffer, len);
+    munmap(buffer, len);
+    file_len = len;
+    return res;
+}
+
+// read-write
+char *map_file_begin(string file_name, size_t& len)
+{
+    int fd = open(file_name.c_str(), O_RDWR);
+    len = lseek(fd, 0, SEEK_END);
+    char *buffer = (char *)mmap(NULL, len, PROT_READ | PROT_WRITE, MAP_SHARED,
+            fd, 0);
+    close(fd);
+    return buffer;
+    // do something.
+    //munmap(buffer, len);
+    // or
+    //msync();
+}
+
+int map_file_end(char *buffer, size_t len)
+{
+    return munmap(buffer, len);
+}
+
+int map_file_sync(char *buffer, size_t len)
+{
+    return msync(buffer, len, MS_SYNC);
+}
+
+node_manager *
+node_manager::load_file(string name)
+{
+    size_t len = 0;
+    char *buf = map_file_begin(name, len);
+    if (buf == NULL || len == 0)
+    {
+        cout << "mmap file is emtpy." << endl;
+        exit(-2);
+    }
+    node_manager *man = (node_manager *)buf;
+    if (man->allocated != len)
+    {
+        cout << "allocated: " << man->allocated << ", len: " << len << endl;
+    }
+    man->allocated = len;
+    return man;
+}
+
+int
+node_manager::unload_file()
+{
+    char *buffer = (char *)this;
+    size_t len = this->allocated;
+    return map_file_end(buffer, len);
 }
 
 //2. index node manager.
@@ -82,10 +152,26 @@ int init_node_managers()
     return 0;
 }
 
+int load_node_managers()
+{
+    node_manager *iman, *dman;
+    iman = node_manager::load_file(index_node_file);
+    dman = node_manager::load_file(data_node_file);
+
+    cout << "i type: " << iman->type << endl;
+    cout << "d type: " << dman->type << endl;
+    cout << "i alloc: " << iman->allocated << endl;
+    cout << "d alloc: " << dman->allocated << endl;
+
+    iman->unload_file();
+    dman->unload_file();
+    return 0;
+}
+
 int main(int c, char **v)
 {
     (void)test_disk_file();
     init_node_managers();
+    load_node_managers();
     return 0;
 }
-
