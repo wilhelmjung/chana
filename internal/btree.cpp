@@ -175,7 +175,6 @@ node_manager::load_file(string name)
     {
         cout << "allocated: " << man->allocated << ", len: " << len << endl;
     }
-    // update allocated by file len.
     man->allocated = len;
     return man;
 }
