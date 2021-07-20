@@ -4,7 +4,7 @@ bin:
 all: bin
 
 clean:
-	rm -f a.out data.bin
+	rm -f a.out *.bin
 
 test: bin
 	rm -f data.bin

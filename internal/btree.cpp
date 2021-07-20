@@ -13,79 +13,79 @@ extern void dump_hex(uint8_t *bs, long len);
 
 const int ORDER = 1024;
 
-struct data_file
+//0. index node, store leaf node and internal node for btree.
+class node
 {
-    uint32_t head; // "data", "idx_"
-    uint32_t type; // 0:data; 1:index.
-    uint32_t root; // root node offset, subject to change.
-    uint32_t size; // size of data file.
-};
-
-struct node
-{
+public:
     uint32_t head;              // "node"
-    uint32_t type;              // 0:root; 1:stem(internal node); 2:leaf
-    uint64_t keys[ORDER - 1];   // TODO: for now only long int is supported.
-    uint64_t ptrs[ORDER];       // ptr to child node.
-    uint64_t vals[0];           // TODO: value array or ptr to real value string, optional for leaf node.
+    uint32_t type;              // 2:root node; 1:internal node; 0:leaf node;
+    uint64_t keys[ORDER - 1];   // for now only long int is supported.
+    uint64_t ptrs[ORDER];       // pointer to child node.
+    uint64_t vals[0];           // value array, optional for leaf node.
+    //TODO: variable length key or value is to be supported.
+    //currently, key and value are 64-bit integers.
 };
-struct node *root_node;
+node *root_node;
 
-// create empty data file.
-int create_data_file(const char *file_path)
+//1. node manager;
+class node_manager
 {
+public:
+    uint32_t head;              // "inod" for index node; "dnod" for data node;
+    uint32_t type;              // 1:index;2:data;
+    uint32_t node_size;         // node size;
+    uint32_t capacity;          // max node number;
+    uint32_t allocated;         // allocated nodes;
+    uint32_t data[0];           // nodes, append only.
+
+    node_manager(){}
+    node_manager(string name, int type, int sz, int cap);
+};
+
+node_manager::node_manager(string name, int type, int node_size, int capacity)
+{
+    this->head = (name[0]<<24)+(name[1]<<16)+(name[2]<<8)+name[3];
+    this->type = type;
+    this->node_size = node_size;
+    this->capacity  = capacity;
+    // serialize
     fstream fs;
-    fs.open(file_path, ios::out | ios::binary);
-	if (!fs)
+    fs.open(name.c_str(), ios::binary | ios::out);
+    if (!fs)
     {
-		cout << "Failed to create file: " << file_path << endl;
-        return -1;
-	}
-    // write file header
-    struct data_file head =
-    {
-        .head = ('d'<<24)+('a'<<16)+('t'<<8)+'a',
-        .type = 0,
-        .root = 0,
-        .size = 0
-    };
-    char *bs = (char *)&head;
-    long sz = sizeof(head);
-    fs.write(bs, sz);
-    cout << sz << " bytes written." << endl;
-    return 0;
+        cout << "file: " << name << ", open failed!" << endl;
+        exit(-1);
+    }
+    fs.write((char *)this, sizeof(*this) + capacity);
+    fs.close();
 }
 
-int load_data_file(const char *file_path)
+//2. index node manager.
+const string index_node_file = "inode.bin";
+node_manager *inode_manager = NULL;
+
+//3. data  node manager.
+const string data_node_file  = "dnode.bin";
+node_manager *dnode_manager = NULL;
+
+//TODO 4. page manager.
+const string page_file = "page.bin";
+
+// init both inode/dnode managers/files.
+int init_node_managers()
 {
-    int fd = open(file_path, O_RDWR);
-    if (fd < 0)
-    {
-        cout << "No data file found, create one." << endl;
-        return create_data_file(file_path);
-    }
-
-    // map the whole data file.
-    //int len = lseek(fd, 0, SEEK_END);
- 
-    // map only header of data file;
-    int len = sizeof(data_file);
-    char *addr = (char *) mmap(NULL, len, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-
-    struct data_file *df = (struct data_file *) addr;
-    if (df->type == 0)
-        df->type = 1;
-    df->size += 16;
-
-    dump_hex((uint8_t *)addr, len);
-
-    close(fd);
+    node_manager *iman, *dman;
+    iman = new node_manager(index_node_file, 1, sizeof(node), 0);
+    dman = new node_manager(data_node_file,  2, sizeof(node), 8*1024);
+    delete iman;
+    delete dman;
     return 0;
 }
 
 int main(int c, char **v)
 {
     (void)test_disk_file();
+    init_node_managers();
     return 0;
 }
 
