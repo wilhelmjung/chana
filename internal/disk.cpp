@@ -53,8 +53,8 @@ int create_disk_file(const char *file_path, int file_type)
     struct disk_file head =
     {
         .head = ('d'<<24)+('a'<<16)+('t'<<8)+'a',
-        .type = file_type,
-        .root = -1, // no root node has been created yet.
+        .type = (uint32_t)file_type,
+        .root = (uint32_t)(-1), // no root node has been created yet.
         .size = 0
     };
     char *bs = (char *)&head;
