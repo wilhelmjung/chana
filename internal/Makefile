@@ -1,11 +1,13 @@
-bin:
-	g++ disk.cpp btree.cpp
+bin: btree
+
+btree:
+	g++ disk.cpp btree.cpp -o btree 
 
 all: bin
 
 clean:
-	rm -f a.out *.bin
+	rm -f btree *.bin
 
 test: bin
 	rm -f data.bin
-	./a.out && ./a.out
+	./btree && ./btree

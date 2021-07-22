@@ -8,9 +8,11 @@
 
 using namespace std;
 
-const string disk_data_file_path = "data.bin";
+const string data_file_path = "data.bin";
 const string disk_index_file_path = "index.bin";
+
 const int max_file_size = 1024 * 1024 * 1024; // 1GB
+const int fragment_size = 64 * 1024 * 1024; // 64MB
 const int DATA_FILE = 0;
 const int INDEX_FILE = 1;
 
