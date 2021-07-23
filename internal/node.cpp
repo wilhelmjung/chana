@@ -3,7 +3,11 @@
 #include <fcntl.h>
 #include <fstream>
 #include <string>
+<<<<<<< HEAD
 #include <cstring>
+=======
+#include <string.h>
+>>>>>>> a01090eb3576c9430f176ae31f2d9dbf97ac79b2
 #include <sys/mman.h>
 #include <unistd.h>
 
